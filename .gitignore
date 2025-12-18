@@ -56,7 +56,3 @@ dkms.conf
 
 # Build directories
 build/
-
-# Project executables
-assembler
-simulator
