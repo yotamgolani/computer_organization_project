@@ -29,6 +29,7 @@
 *.dylib
 
 # Executables
+simulator/simulator
 *.exe
 *.out
 *.app
