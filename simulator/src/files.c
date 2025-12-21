@@ -180,7 +180,7 @@ void files_log_trace_step(SimState *state, word inst_word) {
 }
 
 // Log hardware register access
-void files_log_hwreg(SimState *state, uint32_t reg_idx, HwRegAction action, uint32_t val) {
+void files_log_hwreg(SimState *state, HwRegAction action, uint32_t reg_idx, uint32_t val) {
     if (!g_traces.hwregtrace) return;
     const char *action_str = (action == HWREG_READ) ? "READ" : "WRITE";
     const char *name = (reg_idx < NUM_IO_REGISTERS) ? g_io_reg_names[reg_idx] : "unknown";

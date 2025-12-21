@@ -23,25 +23,24 @@ void disk_cmd_write(SimState *state) {
 
 // Update the disk timer and perform operation on completion
 void disk_tick(SimState *state) {
-    if (!state->disk_busy) {
+    if (!state->disk_busy) { // No operation in progress
         return;
     }
 
-    state->disk_timer--;
+    state->disk_timer--; // Decrement timer
 
-    if (state->disk_timer == 0) {
-        // Operation complete
+    if (state->disk_timer == 0) { // Operation complete
         uint32_t cmd = state->io_registers[IOREG_DISKCMD];
         uint32_t sector = state->io_registers[IOREG_DISKSECTOR];
         uint32_t buffer_addr = state->io_registers[IOREG_DISKBUFFER];
 
         if (sector < DISK_SECTORS) {
             if (cmd == DISK_READ) { // Read sector (Disk -> Memory)
-                for (int i = 0; i < DISK_SECTOR_SIZE; i++) {
+                for (int i = 0; i < DISK_SECTOR_SIZE; i++) { // Copy sector data to memory
                     memory_write(state, buffer_addr + i, state->disk[sector][i]);
                 }
             } else if (cmd == DISK_WRITE) { // Write sector (Memory -> Disk)
-                for (int i = 0; i < DISK_SECTOR_SIZE; i++) {
+                for (int i = 0; i < DISK_SECTOR_SIZE; i++) { // Copy data from memory to sector
                     state->disk[sector][i] = memory_read(state, buffer_addr + i);
                 }
             }

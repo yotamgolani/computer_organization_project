@@ -7,19 +7,6 @@
 
 typedef uint32_t word;
 
-#define WORD_MASK 0xFFFFF
-#define MASK_WORD(w) ((w) & WORD_MASK)
-
-// System Constants
-#define MEM_SIZE 4096
-#define NUM_REGISTERS 16
-#define NUM_IO_REGISTERS 23
-#define DISK_SECTORS 128
-#define DISK_SECTOR_SIZE 128
-#define MONITOR_WIDTH 256
-#define MONITOR_HEIGHT 256
-#define MONITOR_SIZE (MONITOR_WIDTH * MONITOR_HEIGHT)
-
 // Register Names (Indices)
 #define REG_ZERO 0
 #define REG_IMM 1 // sign-extended immediate value
@@ -37,6 +24,23 @@ typedef uint32_t word;
 #define REG_GP 13
 #define REG_SP 14
 #define REG_RA 15
+
+// Macro to check if a register is writable (not ZERO or IMM)
+#define WRITABLE_REGISTER(reg) ((reg) != REG_ZERO && (reg) != REG_IMM)
+
+#define WORD_LEN 20
+#define WORD_MASK 0xFFFFF
+#define MASK_WORD(w) ((w) & WORD_MASK)
+
+// System Constants
+#define MEM_SIZE 4096
+#define NUM_REGISTERS 16
+#define NUM_IO_REGISTERS 23
+#define DISK_SECTORS 128
+#define DISK_SECTOR_SIZE 128
+#define MONITOR_WIDTH 256
+#define MONITOR_HEIGHT 256
+#define MONITOR_SIZE (MONITOR_WIDTH * MONITOR_HEIGHT)
 
 // IO Register Indices
 #define IOREG_IRQ0ENABLE 0     // irq0 enable (single-bit)
@@ -90,5 +94,25 @@ typedef struct {
     int irq2_count;        // Total number of IRQ2 interrupts in the input file
     int irq2_index;        // Index of the next IRQ2 interrupts to process
 } SimState;
+
+// Instruction Struct
+typedef struct {
+    uint32_t opcode;
+    uint32_t rd;
+    uint32_t rs;
+    uint32_t rt;
+    bool is_imm;
+} Instruction;
+
+static inline Instruction decode_instruction(word inst_word) {
+    Instruction inst;
+    inst.opcode = (inst_word >> 12) & 0xFF; // 8-bit opcode
+    inst.rd = (inst_word >> 8) & 0xF; // 4-bit rd
+    inst.rs = (inst_word >> 4) & 0xF; // 4-bit rs
+    inst.rt = inst_word & 0xF; // 4-bit rt
+    inst.is_imm = (inst.rs == REG_IMM || inst.rt == REG_IMM); // Immediate if rs or rt is REG_IMM
+    return inst;
+}
+
 
 #endif // SIMULATOR_H

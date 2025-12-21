@@ -7,44 +7,48 @@
 #include <stdlib.h>
 #include <string.h>
 
+// Sign-extend a value with given bit-width to 32-bits
 static int32_t sign_extend(uint32_t val, int bits) {
-    if (val & (1 << (bits - 1))) {
-        return (int32_t)(val | (~((1 << bits) - 1)));
+    if (val & (1 << (bits - 1))) { // MSB is set => negative number
+        return (int32_t)(val | (~((1 << bits) - 1))); // Fill upper bits with 1s
     }
-    return (int32_t)val;
+    return (int32_t)val; // For positive values, casting to int32_t will sign-extend correctly
 }
 
+// Simulate one CPU step
 bool core_step(SimState *state) {
-    if (state->halted) return false;
+    if (state->halted) return false; // Stop if already halted
 
     uint32_t pc = state->pc;
-    word inst_word = memory_read(state, pc);
+    word inst_word = memory_read(state, pc); // Read instruction from memory
     
-    // Decode
-    uint32_t opcode = (inst_word >> 12) & 0xFF;
-    uint32_t rd = (inst_word >> 8) & 0xF;
-    uint32_t rs = (inst_word >> 4) & 0xF;
-    uint32_t rt = (inst_word) & 0xF;
+    // Decode instruction fields
+    Instruction inst = decode_instruction(inst_word);
 
-    bool is_imm = (rs == REG_IMM || rt == REG_IMM);
     int32_t imm_val = 0;
     
     // Log instruction trace
     files_log_trace_step(state, inst_word);
+    
+    // Set REG_ZERO to 0
+    state->registers[REG_ZERO] = 0; //
 
-    if (is_imm) {
+    // Set REG_IMM if needed
+    if (inst.is_imm) {
         imm_val = memory_read(state, pc + 1);
-        state->registers[REG_IMM] = sign_extend(imm_val, 20);
+        state->registers[REG_IMM] = sign_extend(imm_val, WORD_LEN);
     }
     
-    uint32_t next_pc = pc + (is_imm ? 2 : 1);
+    // Calculate next PC based on instruction type
+    uint32_t next_pc = pc + (inst.is_imm ? 2 : 1);
     
-    int32_t src_s = state->registers[rs];
-    int32_t src_t = state->registers[rt];
+    int32_t src_s = state->registers[inst.rs];
+    int32_t src_t = state->registers[inst.rt];
     int32_t res = 0;
     bool write_reg = false;
-    
-    switch (opcode) {
+
+    // Handle each opcode
+    switch (inst.opcode) {
         case 0: // add
             res = src_s + src_t;
             write_reg = true;
@@ -74,48 +78,48 @@ bool core_step(SimState *state) {
             write_reg = true;
             break;
         case 7: // sra
-            res = src_s >> src_t; 
+            res = src_s >> src_t;
             write_reg = true;
             break;
         case 8: // srl
-            res = (uint32_t)src_s >> src_t; 
+            res = (uint32_t)src_s >> src_t; // casting to uint32_t for logical right shift
             write_reg = true;
             break;
         case 9: // beq
-            if (src_s == src_t) { next_pc = state->registers[rd]; }
+            if (src_s == src_t) { next_pc = state->registers[inst.rd]; }
             break;
         case 10: // bne
-            if (src_s != src_t) { next_pc = state->registers[rd]; }
+            if (src_s != src_t) { next_pc = state->registers[inst.rd]; }
             break;
         case 11: // blt
-            if (src_s < src_t) { next_pc = state->registers[rd]; }
+            if (src_s < src_t) { next_pc = state->registers[inst.rd]; }
             break;
         case 12: // bgt
-            if (src_s > src_t) { next_pc = state->registers[rd]; }
+            if (src_s > src_t) { next_pc = state->registers[inst.rd]; }
             break;
         case 13: // ble
-            if (src_s <= src_t) { next_pc = state->registers[rd]; }
+            if (src_s <= src_t) { next_pc = state->registers[inst.rd]; }
             break;
         case 14: // bge
-            if (src_s >= src_t) { next_pc = state->registers[rd]; }
+            if (src_s >= src_t) { next_pc = state->registers[inst.rd]; }
             break;
         case 15: // jal
-            state->registers[rd] = next_pc; 
-            next_pc = state->registers[rs];
+            state->registers[inst.rd] = next_pc; 
+            next_pc = state->registers[inst.rs];
             break;
         case 16: // lw
             {
                 uint32_t addr = src_s + src_t;
-                res = memory_read(state, addr);
-                res = sign_extend(res, 20);
+                res = memory_read(state, addr); // read 20-bit word from memory
+                res = sign_extend(res, WORD_LEN); // sign-extend to 32-bits
                 write_reg = true;
             }
             break;
         case 17: // sw
             {
                 uint32_t addr = src_s + src_t;
-                uint32_t val = state->registers[rd];
-                memory_write(state, addr, val);
+                uint32_t val = state->registers[inst.rd]; // value to store
+                memory_write(state, addr, val); // write 20-bit word to memory (masking happens inside)
             }
             break;
         case 18: // reti
@@ -125,9 +129,9 @@ bool core_step(SimState *state) {
         case 19: // in
             {
                 uint32_t reg_idx = src_s + src_t;
-                if (reg_idx < NUM_IO_REGISTERS) {
+                if (reg_idx < NUM_IO_REGISTERS) { // valid IOReg index
                     res = state->io_registers[reg_idx];
-                    files_log_hwreg(state, reg_idx, HWREG_READ, res);
+                    files_log_hwreg(state, HWREG_READ, reg_idx, res);
                 }
                 write_reg = true;
             }
@@ -135,43 +139,45 @@ bool core_step(SimState *state) {
         case 20: // out
             {
                 uint32_t reg_idx = src_s + src_t;
-                uint32_t val = state->registers[rd];
+                uint32_t val = state->registers[inst.rd];
                 if (reg_idx < NUM_IO_REGISTERS) {
                     state->io_registers[reg_idx] = val;
-                    files_log_hwreg(state, reg_idx, HWREG_WRITE, val);
-
-                    if (reg_idx == IOREG_DISKCMD) {
-                        disk_cmd_write(state);
-                    } else if (reg_idx == IOREG_MONITORCMD) {
-                        monitor_cmd_write(state);
-                    } else if (reg_idx == IOREG_LEDS) {
-                         files_log_leds(state);
-                    } else if (reg_idx == IOREG_DISPLAY7SEG) {
-                         files_log_display7seg(state);
+                    files_log_hwreg(state, HWREG_WRITE, reg_idx, val);
+                    // Handle different IO Operations
+                    switch (reg_idx) {
+                        case IOREG_LEDS:
+                            files_log_leds(state);
+                            break;
+                        case IOREG_DISPLAY7SEG:
+                            files_log_display7seg(state);
+                            break;
+                        case IOREG_DISKCMD:
+                            disk_cmd_write(state);
+                            break;
+                        case IOREG_MONITORCMD:
+                            monitor_cmd_write(state);
+                            break;
                     }
                 }
             }
             break;
         case 21: // halt
             state->halted = true;
-            return false;
+            return false; // Stop execution
     }
 
-    if (write_reg && rd != REG_ZERO && rd != REG_IMM) {
-        state->registers[rd] = res;
+    if (write_reg && WRITABLE_REGISTER(inst.rd)) {
+        state->registers[inst.rd] = res; // Write result to destination register
     }
     
-    state->registers[REG_ZERO] = 0;
-    state->pc = next_pc & 0xFFF;
+    state->pc = next_pc & 0xFFF; // Ensure PC is 12-bits
 
     // Check IRQ2
     bool irq2_active = false;
-    if (state->irq2_cycles && state->irq2_index < state->irq2_count) {
-        if (state->irq2_cycles[state->irq2_index] == state->total_cycles) {
+    if (state->irq2_cycles && state->irq2_index < state->irq2_count) { // IRQ2 cycles left to process
+        if (state->irq2_cycles[state->irq2_index] == state->total_cycles) { // Set IRQ2 to high if cycle matches
             irq2_active = true;
             state->irq2_index++; 
-        } else if (state->irq2_cycles[state->irq2_index] < state->total_cycles) {
-             state->irq2_index++;
         }
     }
     
@@ -181,8 +187,8 @@ bool core_step(SimState *state) {
         state->io_registers[IOREG_IRQ2STATUS] = 0;
     }
 
-    timer_tick(state);
-    disk_tick(state);
+    timer_tick(state); // Update timer
+    disk_tick(state); // Update disk
     
     bool irq0 = (state->io_registers[IOREG_IRQ0ENABLE] & state->io_registers[IOREG_IRQ0STATUS]);
     bool irq1 = (state->io_registers[IOREG_IRQ1ENABLE] & state->io_registers[IOREG_IRQ1STATUS]);
@@ -190,14 +196,14 @@ bool core_step(SimState *state) {
     
     bool irq = irq0 || irq1 || irq2;
     
-    if (irq && !state->in_interrupt) {
-        state->in_interrupt = true;
-        state->io_registers[IOREG_IRQRETURN] = state->pc;
-        state->pc = state->io_registers[IOREG_IRQHANDLER] & 0xFFF;
+    if (irq && !state->in_interrupt) { //  If any IRQ is active and not already in interrupt
+        state->in_interrupt = true; // Enter interrupt
+        state->io_registers[IOREG_IRQRETURN] = state->pc; // Save return PC
+        state->pc = state->io_registers[IOREG_IRQHANDLER] & 0xFFF; // Jump to IRQ handler (12-bits)
     }
     
-    state->io_registers[IOREG_CLKS]++;
-    state->total_cycles++;
+    state->io_registers[IOREG_CLKS]++; // Increment clock cycles
+    state->total_cycles++; // Increment total cycles
     
     return true;
 }

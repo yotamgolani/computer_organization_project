@@ -47,7 +47,7 @@ void files_init_traces(const char *trace_path, const char *hwreg_path, const cha
 void files_close_traces(void);
 
 void files_log_trace_step(SimState *state, word inst_word);
-void files_log_hwreg(SimState *state, uint32_t reg_idx, HwRegAction action, uint32_t val);
+void files_log_hwreg(SimState *state, HwRegAction action, uint32_t reg_idx, uint32_t val);
 void files_log_leds(SimState *state);
 void files_log_display7seg(SimState *state);
 

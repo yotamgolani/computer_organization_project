@@ -34,7 +34,6 @@ int main(int argc, char *argv[]) {
     // Initialize State
     SimState state;
     memset(&state, 0, sizeof(SimState));
-    // memory_init(&state); // memset handled it
 
     // Read Inputs
     if (!files_read_memin(&state, memin_path)) {
