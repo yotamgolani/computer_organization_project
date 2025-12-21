@@ -188,13 +188,15 @@ void files_log_hwreg(SimState *state, uint32_t reg_idx, HwRegAction action, uint
 }
 
 // Log LED register changes
-void files_log_leds(SimState *state, uint32_t val) {
+void files_log_leds(SimState *state) {
     if (!g_traces.leds) return;
+    uint32_t val = state->io_registers[IOREG_LEDS];
     fprintf(g_traces.leds, "%llu %08X\n", state->total_cycles, val);
 }
 
 // Log 7-segment display register changes
-void files_log_display7seg(SimState *state, uint32_t val) {
+void files_log_display7seg(SimState *state) {
     if (!g_traces.display7seg) return;
+    uint32_t val = state->io_registers[IOREG_DISPLAY7SEG];
     fprintf(g_traces.display7seg, "%llu %08X\n", state->total_cycles, val);
 }

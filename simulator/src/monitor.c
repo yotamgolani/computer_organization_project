@@ -1,7 +1,8 @@
 #include "monitor.h"
 
-void monitor_cmd_write(SimState *state, uint32_t value) {
-    state->io_registers[IOREG_MONITORCMD] = value;
+// Write to monitor
+void monitor_cmd_write(SimState *state) {
+    uint32_t value = state->io_registers[IOREG_MONITORCMD];
 
     if (value == 1) {
         uint32_t addr = state->io_registers[IOREG_MONITORADDR];

@@ -3,7 +3,6 @@
 
 #include "simulator.h"
 
-// Handle write to monitorcmd
-void monitor_cmd_write(SimState *state, uint32_t value);
+void monitor_cmd_write(SimState *state);
 
 #endif // MONITOR_H

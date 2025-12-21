@@ -143,11 +143,11 @@ bool core_step(SimState *state) {
                     if (reg_idx == IOREG_DISKCMD) {
                         disk_cmd_write(state);
                     } else if (reg_idx == IOREG_MONITORCMD) {
-                        monitor_cmd_write(state, val);
+                        monitor_cmd_write(state);
                     } else if (reg_idx == IOREG_LEDS) {
-                         files_log_leds(state, val);
+                         files_log_leds(state);
                     } else if (reg_idx == IOREG_DISPLAY7SEG) {
-                         files_log_display7seg(state, val);
+                         files_log_display7seg(state);
                     }
                 }
             }
