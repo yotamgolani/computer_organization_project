@@ -110,7 +110,7 @@ static inline Instruction decode_instruction(word inst_word) {
     inst.rd = (inst_word >> 8) & 0xF; // 4-bit rd
     inst.rs = (inst_word >> 4) & 0xF; // 4-bit rs
     inst.rt = inst_word & 0xF; // 4-bit rt
-    inst.is_imm = (inst.rs == REG_IMM || inst.rt == REG_IMM); // Immediate if rs or rt is REG_IMM
+    inst.is_imm = (inst.rs == REG_IMM || inst.rt == REG_IMM || inst.rd == REG_IMM); // Immediate if rs or rt is REG_IMM
     return inst;
 }
 

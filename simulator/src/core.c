@@ -31,7 +31,7 @@ bool core_step(SimState *state) {
     files_log_trace_step(state, inst_word);
     
     // Set REG_ZERO to 0
-    state->registers[REG_ZERO] = 0; //
+    state->registers[REG_ZERO] = 0;
 
     // Set REG_IMM if needed
     if (inst.is_imm) {
