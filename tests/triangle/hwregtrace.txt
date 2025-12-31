@@ -1,0 +1,3 @@
+16 WRITE monitoraddr 00000000
+18 WRITE monitordata 000000FF
+20 WRITE monitorcmd 00000001
