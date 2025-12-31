@@ -29,6 +29,7 @@
 *.dylib
 
 # Executables
+simulator/simulator
 *.exe
 *.out
 *.app
@@ -56,7 +57,3 @@ dkms.conf
 
 # Build directories
 build/
-
-# Project executables
-assembler
-simulator
