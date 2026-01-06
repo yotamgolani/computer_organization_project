@@ -2,7 +2,6 @@
 #include "memory.h"
 #include <stdio.h>
 
-#define DISK_DELAY 1024
 
 // ----- DISK FUNCTIONS -----
 

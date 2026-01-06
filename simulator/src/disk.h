@@ -3,6 +3,8 @@
 
 #include "simulator.h"
 
+#define DISK_DELAY 1024
+
 typedef enum {
     DISK_NO_CMD = 0,
     DISK_READ = 1,

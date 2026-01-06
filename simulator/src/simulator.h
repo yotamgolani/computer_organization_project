@@ -5,9 +5,23 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-typedef uint32_t word;
+// ---- System Constants ---- //
+#define MEM_SIZE 4096
+#define DISK_SECTORS 128
+#define DISK_SECTOR_SIZE 128
+#define MONITOR_WIDTH 256
+#define MONITOR_HEIGHT 256
+#define MONITOR_SIZE (MONITOR_WIDTH * MONITOR_HEIGHT)
 
-// Register Names (Indices)
+// Simulator word type (20 bits stored in a 32-bit unsigned int)
+typedef uint32_t word;
+#define WORD_LEN 20
+#define WORD_MASK 0xFFFFF
+#define MASK_WORD(w) ((w) & WORD_MASK)
+
+// ---- General Purpose Registers ---- //
+#define NUM_REGISTERS 16
+// GP Register Indices
 #define REG_ZERO 0
 #define REG_IMM 1 // sign-extended immediate value
 #define REG_V0 2
@@ -28,20 +42,8 @@ typedef uint32_t word;
 // Macro to check if a register is writable (not ZERO or IMM)
 #define WRITABLE_REGISTER(reg) ((reg) != REG_ZERO && (reg) != REG_IMM)
 
-#define WORD_LEN 20
-#define WORD_MASK 0xFFFFF
-#define MASK_WORD(w) ((w) & WORD_MASK)
-
-// System Constants
-#define MEM_SIZE 4096
-#define NUM_REGISTERS 16
+// ---- IO Registers ---- //
 #define NUM_IO_REGISTERS 23
-#define DISK_SECTORS 128
-#define DISK_SECTOR_SIZE 128
-#define MONITOR_WIDTH 256
-#define MONITOR_HEIGHT 256
-#define MONITOR_SIZE (MONITOR_WIDTH * MONITOR_HEIGHT)
-
 // IO Register Indices
 #define IOREG_IRQ0ENABLE 0     // irq0 enable (single-bit)
 #define IOREG_IRQ1ENABLE 1     // irq1 enable (single-bit)
@@ -66,7 +68,7 @@ typedef uint32_t word;
 #define IOREG_MONITORDATA 21   // monitor data (8-bits)
 #define IOREG_MONITORCMD 22    // monitor command (1-bit) - 0: none, 1: write pixel
 
-// Simulator State
+// ---- Simulator State ---- //
 typedef struct {
     // --- CPU registers ---
     uint32_t registers[NUM_REGISTERS]; // 32-bit wide registers
@@ -95,7 +97,7 @@ typedef struct {
     int irq2_index;        // Index of the next IRQ2 interrupts to process
 } SimState;
 
-// Instruction Struct
+// ---- Instruction Struct ---- //
 typedef struct {
     uint32_t opcode;
     uint32_t rd;
