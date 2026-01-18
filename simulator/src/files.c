@@ -87,7 +87,7 @@ bool files_read_irq2in(SimState *state, const char *path) {
     return true;
 }
 
-// ----- SNAPSHOT FUNCTIONS (Called once at the end) -----
+// ----- FINAL STATE FUNCTIONS (Called once at the end) -----
 
 // Write SimState memory to memout
 void files_write_memout(SimState *state, const char *path) {

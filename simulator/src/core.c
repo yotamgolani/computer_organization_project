@@ -201,6 +201,7 @@ bool core_step(SimState *state) {
         state->io_registers[IOREG_IRQRETURN] = state->pc; // Save return PC
         state->pc = state->io_registers[IOREG_IRQHANDLER] & 0xFFF; // Jump to IRQ handler (12-bits)
     }
+    // Disabling IRQ status bits are handled in the IRQHandler above
     
     state->io_registers[IOREG_CLKS]++; // Increment clock cycles
     state->total_cycles++; // Increment total cycles
