@@ -1,20 +1,5 @@
 /* asm.c — SIMP assembler (2-pass) producing memin.txt
    Usage: asm.exe program.asm memin.txt
-
-   This version enforces the PDF-style comment rule:
-   - Only '#' comments are supported.
-   - '#' is allowed ONLY after the last required operand:
-        * instruction: after the 5th token (opcode rd rs rt imm)
-          (or 6 tokens if there's a leading label:)
-        * .word:       after the 3rd token (.word addr data)
-        * label-only:  after the label token
-   - '#' may appear immediately after the last operand (no whitespace required),
-     e.g. "add $t0,$t1,$t2,$imm#comment" is OK.
-
-   Also:
-   - DISALLOW: label: .word address data  (not required by PDF, safer for testers)
-   - Registers/opcodes are case-insensitive; labels are case-sensitive.
-   - C90-friendly.
 */
 
 #include <stdio.h>
@@ -107,7 +92,7 @@ static int is_label_def_token(const char *tok, char *out_label /* no ':' */) {
 }
 
 static int parse_num20(const char *tok, int *out_val) {
-    /* decimal or 0x... hex, allow +/-; keep low 20 bits */
+    /* keep low 20 bits */
     char *end;
     long v;
 
@@ -144,11 +129,11 @@ static int tokenize(char *line, char *toks[], int max_toks) {
     return n;
 }
 
-/* Validate comment placement per PDF rule and cut it.
+/* Validate comment placement rule and cut it.
    - Determine line type from tokens BEFORE '#'
    - Enforce exact required token count for that type.
-   - Allow '#' immediately after last operand (no whitespace needed),
-     because we cut at the first '#'.
+   - Allow '#' after last operand
+    cut at the first '#'.
 */
 static void validate_and_cut_comment(char *line, int line_no) {
     char *hash;
@@ -186,14 +171,11 @@ static void validate_and_cut_comment(char *line, int line_no) {
     if (is_label_def_token(toks[0], lbl)) {
         tok_i = 1;
         if (tok_i >= nt) {
-            /* label-only line: allow comment after label */
             return;
         }
-        /* safer: label before .word not allowed */
         if (strcmp(toks[tok_i], ".word") == 0) {
             die_at(line_no, "label before .word is not allowed (use: label: on its own line, or .word without label)");
         }
-        /* instruction with label must be exactly: label: opcode rd rs rt imm */
         if (nt != 6) die_at(line_no, "comment must be after the 5th operand (instruction has: opcode rd rs rt imm)");
         return;
     }
