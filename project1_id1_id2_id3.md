@@ -88,3 +88,5 @@ Produces a `memin.txt` file containing:
 - Exactly `MEM_SIZE` lines
 - One 20-bit word per line
 - Each word printed as a zero-padded hexadecimal value
+# Test Programs
+The 4 test programs `binom`, `disktest`, `sort`, `triangle` are contained in the respective folder, each containing all the input files (`asm` files) and the output files.
