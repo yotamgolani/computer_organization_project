@@ -35,6 +35,10 @@ bool core_step(SimState *state) {
         imm_val = memory_read(state, pc + 1);
         state->registers[REG_IMM] = sign_extend(imm_val, WORD_LEN);
     }
+    else // Clear REG_IMM if not used
+    {
+        state->registers[REG_IMM] = 0;
+    }
     
     // Log instruction trace
     files_log_trace_step(state, inst_word);
