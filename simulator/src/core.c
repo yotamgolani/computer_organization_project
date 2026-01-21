@@ -163,6 +163,8 @@ bool core_step(SimState *state) {
             break;
         case 21: // halt
             state->halted = true;
+            state->io_registers[IOREG_CLKS]++;
+            state->total_cycles++;
             return false; // Stop execution
     }
 
@@ -183,8 +185,6 @@ bool core_step(SimState *state) {
     
     if (irq2_active) {
         state->io_registers[IOREG_IRQ2STATUS] = 1;
-    } else {
-        state->io_registers[IOREG_IRQ2STATUS] = 0;
     }
 
     timer_tick(state); // Update timer
