@@ -1,12 +1,8 @@
 # triangle.asm
-        lw $s0, $zero, $imm, 256    # 0x100 (Address of A)
-        lw $s1, $zero, $imm, 257    # 0x101 (Address of B)
-        lw $s2, $zero, $imm, 258    # 0x102 (Address of C)
-        
-        lw $s0, $s0, $zero, 0       # load actual A value
-        lw $s1, $s1, $zero, 0       # load actual B value
-        lw $s2, $s2, $zero, 0       # load actual C value
-        
+        lw $s0, $zero, $imm, 256    # A coordinate
+        lw $s1, $zero, $imm, 257    # B coordinate
+        lw $s2, $zero, $imm, 258    # C coordinate
+                
         # dy = (B - A) / 256
         sub $t0, $s1, $s0, 0        # t0 = B - A
         srl $t0, $t0, $imm, 8       # t0 = dy (number of rows - 1)
@@ -40,7 +36,3 @@ skipp:
         ble $imm, $s1, $t0, loopi    # if i <= dy, repeat
         
         halt $zero, $zero, $zero, 0 # halt
-
-.word 256 0x3264
-.word 257 0xC864
-.word 258 0xC8FA
