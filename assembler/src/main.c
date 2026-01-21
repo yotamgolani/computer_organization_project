@@ -447,7 +447,7 @@ static void write_memin(const char *path, const int mem[MEM_SIZE]) {
     }
 
     for (i = 0; i < MEM_SIZE; i++) {
-        fprintf(out, "%05x\n", mem[i] & WORD_MASK);
+        fprintf(out, "%05X\n", mem[i] & WORD_MASK);
     }
     fclose(out);
 }
