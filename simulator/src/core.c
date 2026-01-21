@@ -27,9 +27,6 @@ bool core_step(SimState *state) {
 
     int32_t imm_val = 0;
     
-    // Log instruction trace
-    files_log_trace_step(state, inst_word);
-    
     // Set REG_ZERO to 0
     state->registers[REG_ZERO] = 0;
 
@@ -38,6 +35,9 @@ bool core_step(SimState *state) {
         imm_val = memory_read(state, pc + 1);
         state->registers[REG_IMM] = sign_extend(imm_val, WORD_LEN);
     }
+    
+    // Log instruction trace
+    files_log_trace_step(state, inst_word);
     
     // Calculate next PC based on instruction type
     uint32_t next_pc = pc + (inst.is_imm ? 2 : 1);
