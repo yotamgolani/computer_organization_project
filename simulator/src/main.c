@@ -10,7 +10,7 @@
 
 int main(int argc, char *argv[]) {
     if (argc != NUM_ARGS + 1) {
-        fprintf(stderr, "Usage: %s memin diskin irq2in memout regout trace hwregtrace cycles leds display7seg diskout monitor(txt) monitor(yuv)\n", argv[0]);
+        fprintf(stderr, "Usage: %s memin.txt diskin.txt irq2in.txt memout.txt regout.txt trace.txt hwregtrace.txt cycles.txt leds.txt display7seg.txt diskout.txt monitor.txt monitor.yuv\n", argv[0]);
         return EXIT_FAILURE;
     }
 
